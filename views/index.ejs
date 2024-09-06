@@ -1,0 +1,189 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Enter Your Name</h1>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required value="">
+            <button id="submit" type="submit">Submit</button>
+        
+
+        <p id="greeting"></p>
+    </div>
+
+    <div class="chat-container">
+        <div class="nav">
+        <h1>Chat App</h1>
+        <div class="users">
+            
+            <select name="" id="onlineUsers">   
+            </select>
+            <p></p>
+        </div>
+        </div>
+            <div class="chat-box">
+                <div class="message sent">
+                    <h3>~Username</h3>
+                    <div class="d">
+                        <p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptate consequuntur autem debitis! Incidunt odit iure reiciendis laboriosam quia, eum, dicta impedit provident eius in nisi laborum veritatis expedita, beatae quibusdam.</p>
+                        <h5>2:10</h5>
+                    </div>
+                </div>
+                <div class="message received">
+                    <h3>~Username</h3>
+                    <p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptate consequuntur autem debitis! Incidunt odit iure reiciendis laboriosam quia, eum, dicta impedit provident eius in nisi laborum veritatis expedita, beatae quibusdam.</p>
+                    <h5>2:10</h5>
+                </div>
+                   
+                </div>
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type your message..." value="">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+    <script>
+        let socket ;
+
+        var nam = document.querySelector("#name")
+        var submit = document.querySelector("#submit")
+        
+        submit.addEventListener("click",function(){
+            if((nam.value).trim().length>2){
+                socket=io() 
+                socket.emit("u",nam.value.trim()) 
+               
+                document.querySelector(".chat-container").style.display="flex"
+                document.querySelector(".container").style.display="none"
+
+
+
+                var input=document.querySelector("#message-input")
+                var sendbtn= document.querySelector("#send-button")
+                var timingOut;
+                input.addEventListener("input",function(){
+                    var typing=input.value;
+                    
+                    socket.emit("isTyping",typing) 
+                    
+                    clearTimeout(timingOut);
+                   
+                     timingOut=  setTimeout(function(){
+                            typing="";
+                            socket.emit("isTyping",typing)            
+                        },400)
+                   
+                })
+                
+                socket.on("result",function(u){
+                    if(u.id!=socket.id){
+                        if(u.resu==true){
+                            console.log("ksflkahl");
+                            
+                            document.querySelector('.nav .users p').textContent=`${u.name} typing..`
+                        }
+                        else{
+                        document.querySelector('.nav .users p').textContent=""
+                        }
+                    }
+                   
+                })
+
+                sendbtn.addEventListener("click",function(){
+                 socket.emit("message",input.value);
+                  input.value=""
+                 })
+        
+                socket.on("messageback",function(u){
+            
+             function scrollToBottom() {
+             const chatBox = document.querySelector('.chat-box');
+             chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+            if(u.id==socket.id){
+        
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', 'sent');
+
+
+                const usernameHeading = document.createElement('h3');
+                usernameHeading.textContent = `~${u.name}`;  // Replace with actual username
+                messageDiv.appendChild(usernameHeading);
+
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = `${u.message}`;
+                messageDiv.appendChild(messageParagraph);
+
+
+                const timeHeading = document.createElement('h5');
+                timeHeading.textContent = `${new Date().getHours()}:${new Date().getMinutes()}`;  // Replace with actual time
+                messageDiv.appendChild(timeHeading);
+
+
+            const chatBox = document.querySelector('.chat-box');
+            chatBox.appendChild(messageDiv);
+            }
+            else{
+                const receivedMessageDiv = document.createElement('div');
+                receivedMessageDiv.classList.add('message', 'received');
+
+
+                const usernameHeading = document.createElement('h3');
+                usernameHeading.textContent = `~${u.name}`;  // Replace with actual username
+                receivedMessageDiv.appendChild(usernameHeading);
+
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = `${u.message}`;
+                receivedMessageDiv.appendChild(messageParagraph);
+
+
+                const timeHeading = document.createElement('h5');
+                timeHeading.textContent = `${new Date().getHours()}:${new Date().getMinutes()}`; 
+                receivedMessageDiv.appendChild(timeHeading);
+
+
+                const chatBox = document.querySelector('.chat-box');
+                chatBox.appendChild(receivedMessageDiv);
+
+            }
+            
+            scrollToBottom()
+        })    
+
+               
+              
+                socket.on("onlineUsers",function(u){
+                      var users=""
+                    users+=`<option value=""> Online users : ${u.length}</option>`
+                     
+                    u.forEach(function(banda){
+                        users+=`<option value="">${banda}</option>`
+                    })
+                    document.querySelector('.nav select').innerHTML=users
+                })
+           
+
+
+            }
+        })
+            
+       
+    </script>
+</body>
+</html>
