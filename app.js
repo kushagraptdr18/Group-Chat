@@ -48,9 +48,16 @@ io.on("connection",function(socket){
         }
       })
 
-    
+      socket.on("disconnect",function(socket){
+        var index  = ids.indexOf(socket.id)
+        ids.splice(index,1)
+        names.splice(index,1)
+        io.emit("onlineUsers",names)     
+      })
 
 })
+
+
 
 app.get("/",(req,res)=>{
     res.render("index")
